@@ -1,5 +1,10 @@
 use derive_more::{Display, Error};
-use std::{env::args, fs, str::FromStr};
+use std::{
+    env::args,
+    fs,
+    io::{BufRead, Read},
+    str::FromStr,
+};
 
 #[derive(Debug)]
 pub enum Token {
@@ -138,7 +143,11 @@ pub fn execute(program: &Program, memory: &mut Vec<u8>, pointer: &mut usize) {
                 print!("{}", char::from_u32(memory[*pointer] as u32).unwrap())
             }
             Token::ValueInput => {
-                todo!("value input not implemented yet")
+                // TODO:implement input
+                let mut string = String::with_capacity(5);
+                std::io::stdin().read_line(&mut string).unwrap();
+                //NOTE:for now defaulting to 0 is ok
+                memory[*pointer] = string.chars().next().unwrap_or_default() as u8;
             }
             Token::Loop(sub_program) => {
                 while memory[*pointer] > 0 {
