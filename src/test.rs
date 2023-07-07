@@ -4,8 +4,9 @@ use crate::program::{ParseError, Program, Token};
 
 macro_rules! test_interpreter_result {
     ($code: expr, $input: expr, $output: expr) => {{
+        let input = $input;
         let program = $code.parse::<Program>().unwrap();
-        let input_vec = Rc::new(RefCell::new($input.into_iter()));
+        let input_vec = Rc::new(RefCell::new(input.iter().copied()));
         let output_vec = Rc::new(RefCell::new(Vec::new()));
         let input = || input_vec.borrow_mut().next().unwrap();
         let output = |value| {
@@ -74,13 +75,13 @@ pub fn test_interpreter() {
     ++++++++++++++++++++++++++++++++++++++++++++.[-]<<
     <<<<<<<<<<[>>>+>+<<<<-]>>>>[<<<<+>>>>-]<-[>>.>.<<<
     [-]]<<[>>+>+<<<-]>>>[<<<+>>>-]<<[<+>-]>[<+>-]<<<-]"#,
-        vec![],
-        "1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89".as_bytes().to_vec()
+        b"",
+        b"1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89"
     );
     test_interpreter_result!(
         r#"++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.
     "#,
-        vec![],
-        "Hello World!\n".as_bytes().to_vec()
+        b"",
+        b"Hello World!\n"
     );
 }
