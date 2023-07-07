@@ -1,6 +1,6 @@
 use derive_more::{Display, Error};
 use indoc::{formatdoc, indoc};
-use std::{io::Write, str::FromStr};
+use std::{io::{Write, Read}, str::FromStr};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Token {
@@ -206,9 +206,7 @@ impl Program {
 
     pub fn interpret(&self, memory: &mut Vec<u8>, pointer: &mut usize) {
         let input = || {
-            let mut string = String::with_capacity(5);
-            std::io::stdin().read_line(&mut string).unwrap();
-            string.chars().next().unwrap_or_default() as u8
+            std::io::stdin().bytes().next().and_then(|r| r.ok()).unwrap()
         };
         let output = |value: u8| {
             print!("{}", char::from_u32(value as u32).unwrap());
