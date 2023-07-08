@@ -1,6 +1,10 @@
 use derive_more::{Display, Error};
 use indoc::{formatdoc, indoc};
-use std::{io::{Write, Read}, str::FromStr};
+use std::{
+    char,
+    io::{Read, Write},
+    str::FromStr,
+};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Token {
@@ -168,8 +172,9 @@ impl Program {
         pointer: &mut usize,
         input: &I,
         output: &O,
-    ) where
-        I: Fn() -> u8,
+    ) -> Option<()>
+    where
+        I: Fn() -> Option<u8>,
         O: Fn(u8),
     {
         for token in &self.0 {
@@ -193,26 +198,28 @@ impl Program {
                 }
                 Token::ValueOutput => output(memory[*pointer]),
                 Token::ValueInput => {
-                    memory[*pointer] = input();
+                    let Some(i) = input() else {
+                        return None;
+                    };
+                    memory[*pointer] = i;
                 }
                 Token::Loop(sub_program) => {
                     while memory[*pointer] > 0 {
-                        sub_program.interpret_with_custom_io(memory, pointer, input, output)
+                        sub_program.interpret_with_custom_io(memory, pointer, input, output)?;
                     }
                 }
             }
         }
+        Some(())
     }
 
     pub fn interpret(&self, memory: &mut Vec<u8>, pointer: &mut usize) {
-        let input = || {
-            std::io::stdin().bytes().next().and_then(|r| r.ok()).unwrap()
-        };
+        let input = || std::io::stdin().bytes().next().and_then(|r| r.ok());
         let output = |value: u8| {
             print!("{}", char::from_u32(value as u32).unwrap());
             std::io::stdout().flush().unwrap();
         };
-        self.interpret_with_custom_io(memory, pointer, &input, &output)
+        self.interpret_with_custom_io(memory, pointer, &input, &output);
     }
 
     pub fn compile_to_assembly(&self, memory_size: usize) -> String {
